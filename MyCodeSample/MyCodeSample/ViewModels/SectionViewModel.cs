@@ -16,6 +16,8 @@ namespace MyCodeSample.ViewModels
     public class SectionViewModel : ViewModelBase, INotifyPropertyChanged
     {
         private string caption;
+        private ParamGeneral name;
+        private ParamGeneral lenght;
         private SDFSettingViewModelEnum secType = null;
 
         public SourceList<ParamGeneral> _gParams = new();
@@ -25,15 +27,11 @@ namespace MyCodeSample.ViewModels
         //Коллекция параметров нулевой последовательноти
         public ReadOnlyObservableCollection<ParamGeneral> NulltList { get => listNull; }
         private ReadOnlyObservableCollection<ParamGeneral> listNull;
-        private ParamGeneral name;
-        private ParamGeneral lenght;
-
-        public string Number { get; }
-        public ParamGeneral Lenght { get => lenght; set => lenght = value; }
-        public ParamGeneral Name { get => name; set => name = value; }
-
+         
+        //команды добавления/удаления участка
         public ReactiveCommand<Unit, Task> InsertSection { get; }
         public ReactiveCommand<Unit, Unit> DeleteSection { get; }
+        
         public SectionViewModel(TreeNodeGroup parent, IGrouping<string, ParamGeneral> result)
         {
             foreach (var sett in result)
@@ -71,6 +69,50 @@ namespace MyCodeSample.ViewModels
                 //Line = ((parent is TreeNodeGroupLOCLine parentLine) ? parentLine : (parent as TreeNodeGrouplineParams).Line);
             }
         }
+        
+        public string Number { get; }
+        public ParamGeneral Lenght { get => lenght; set => lenght = value; }
+        //Имя типа object, т.к отображаться должно как строка, а писаться в ParamGeneral
+        public object Name
+        {
+            get => (name.SpecValue as string);
+            set
+            {
+                value = LineSectionModel.CheckNameLength(name, (value as string).TrimStart());
+                name.SpecValue = (value as string);
+                this.RaisePropertyChanged(nameof(Name));
+                UpdateCaption();
+            }
+        }
+
+
+        /// <summary>
+        /// Выбранная вкладка(Удельные параметры=0, суммарные=1)
+        /// </summary>
+        public int? SelectedTabInd
+        {
+            // свойство берется из кэша, т.к оно должно быть одинаковым для всех секций
+            get => (GeneralProperties.Instance.GetProperty(nameof(SectionViewModel), GeneralPropertiesDefines.SelectedParamTabInd) as PropertyInt).Value;
+            set
+            {
+                if ((selectedTabInd == 0 || selectedTabInd == null) && value == 1)
+                    Task.Run(() => RecalcSumParams());
+
+                SwitchTabLabels((int)value);
+                selectedTabInd = value;
+                SetIntProperty(GroupGeneralPropertiesDefines.SelectedParamTabInd, (int)value);//свойство сохраняется и в файл, и в кэш
+                this.RaisePropertyChanged(nameof(SelectedTabInd));
+
+            }
+        }
+        private static void SetIntProperty(string key, int val)
+        {
+            PropertyInt propSelectedTabInd = new PropertyInt(GeneralPropertiesDefines.SelectedParamTabInd) { IsSaved = true, Value = val };
+
+            GeneralProperties.Instance.WriteProperties(new() { propSelectedTabInd }, FlagUnitedProerties.ReplaceOrAdd);
+            GeneralProperties.Instance.AddToCache(nameof(SectionViewModel), new() { propSelectedTabInd });
+        }
+
     }
 }
 
