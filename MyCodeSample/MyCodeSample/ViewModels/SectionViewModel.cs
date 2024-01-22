@@ -20,6 +20,8 @@ namespace MyCodeSample.ViewModels
         private ParamGeneral lenght;
         private SDFSettingViewModelEnum secType = null;
 
+        //источник уставок - общий список, а подписчиками 3 коллекции(Direct, Null, Indiv)
+        //это нужно, чтобы избежать повторения кода в UI, для всех них можно будет использовать один DataTemplate и 3 ItemsControl
         public SourceList<ParamGeneral> _gParams = new();
         //Коллекция параметров прямой последовательноти
         public ReadOnlyObservableCollection<ParamGeneral> DirectList { get => listDirect; }
@@ -50,7 +52,7 @@ namespace MyCodeSample.ViewModels
                     lenght = sett;
                 else _gParams.Add(sett);
 
-                //подписка на изменения коллекций, чтобы изменение любого параметра отображалось в UI
+                //подписка на изменения коллекций, чтобы изменение любого параметра отображалось в UI, и чтобы записывалось в источник
                 var cancel = _gParams.Connect().
                 Filter(par => ParamsList.DirectNames.Contains(par.ParamName))
                 .Bind(out listDirect)
