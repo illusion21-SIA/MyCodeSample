@@ -1,0 +1,30 @@
+using Avalonia.Data.Converters;
+using System;
+using System.Globalization;
+
+namespace MyCodeSample.Converters
+{
+    public class FloatConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if ((value is float || value is object) && targetType == typeof(string))
+                return string.Format("{0:0.########}", (float)value);
+            return (value as string);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+
+            if (!string.IsNullOrEmpty((string)value) && !string.IsNullOrWhiteSpace((string)value))
+            {
+                if (value is string && targetType == typeof(float) || targetType == typeof(float?) || targetType == typeof(object))
+                    if (Single.TryParse((value as string).TrimStart(), out float converted))
+                        return converted;
+            }
+            else return 0.0f;
+            return value;
+        }
+    }
+
+}
