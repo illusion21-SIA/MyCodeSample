@@ -3,6 +3,7 @@ using System.Drawing;
 
 namespace MyCodeSample.ViewModels
 {
+    //класс уставки
     public class ParamGeneral : ReactiveObject
     {
         public ParamGeneral(STMainViewModel model, SDFSetting sdfSett)
@@ -14,15 +15,15 @@ namespace MyCodeSample.ViewModels
                 {
                     if (sdfSett.Data is TypEnum enumeration)
                     {
+                        //уставки могут быть разного типа - string,float,enum, эта информация будет в Data
                         Data = enumeration;
                         Setting = new SDFSettingViewModelEnum(sdfSett, model);
                     }
                     else
                     {
                         Data = sdfSett.Data;
-
                         Setting = new SDFSettingViewModel(sdfSett, model);
-
+                        //подписка на события
                         Setting.ModelSET.OnChanged += ModelSET_OnChanged;
                         GetParam += (s) => (model.SelectedNode as SectionViewModel)?.ParamGetSumHandler(s);
                         ParamChanged += (s) => (model.SelectedNode as SectionViewModel)?.ParamSetSpecHandler(s);
@@ -60,6 +61,7 @@ namespace MyCodeSample.ViewModels
         public bool IsError { get => !(Setting?.ModelSDF.Data.IsCorrectValue(specValue, out string desc)) ?? true; }
 
         internal object specValue;
+        //Удельное значение уставки
         public object SpecValue
         {
             get
@@ -81,12 +83,40 @@ namespace MyCodeSample.ViewModels
             }
         }
 
+        List<float> prevValues = new();
+        internal object sumValue = null;
+        //Суммарное значение уставки
+        public object SumValue
+        {
+            get
+            {
+                //пересчитаем из удельного
+                this.GetParam?.Invoke(this);
+                return sumValue;
+            }
+            set
+            {
 
-
-
+                if (Convert.ToSingle(sumValue) != Convert.ToSingle(value))
+                {
+                    //добавим в список предыдущих значений
+                    prevValues.Add(Convert.ToSingle(sumValue));
+                    sumValue = value;
+                    //проверим правильность ввода с помощью регулярных выражений
+                    if (ParamsList.correctFloatFormat.IsMatch(value.ToString()))
+                        ParamChanged.Invoke(this);//из суммарного пересчитаем в удельное
+                }
+                this.RaisePropertyChanged(nameof(IsChangedValue));
+                this.RaisePropertyChanged(nameof(IsSumChangedValue));
+            }
+        }
+        //флаг изменения значения
+        public bool IsSumChangedValue { get => prevValues.Count > 0 && !prevValues.Contains(Convert.ToSingle(sumValue)); }
+        //если значение изменилось, подсветим его зеленым
         public Color IsChangedBackground
         { get => IsChangedValue ? RTColors.BrushChangedCell : Color.Transparent; }
 
+        //это для Undo/redo, чтобы вернуть пред. значение
         private void ModelSET_OnChanged(object sender, ChangesDataCollection e)
         {
             if ((e[0].Sender as SetElement).UndoRedo != UndoRedoEnum.None)
