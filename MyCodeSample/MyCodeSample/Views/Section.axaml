@@ -17,29 +17,45 @@
 	</Design.DataContext>
 
 	<Window.Styles>
+		<Style Selector="TextBox.Section">
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontFamily" Value="avares://Material.Styles/Fonts/Roboto#Roboto" />
+			<Setter Property="Margin" Value="10,5,2,3" />
+			<Setter Property="Padding" Value="10,0,2,0" />
+			<Setter Property="Height" Value="20" />
+			<Setter Property="Padding" Value="0,0,2,0" />
+			<Setter Property="Height" Value="30" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="TextAlignment" Value="Center" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="IsReadOnly" Value="False" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ThemeControlBaseBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="BorderBrush" Value="{DynamicResource ThemeControlBaseBrush}" />
+			<Setter Property="BorderThickness" Value="1" />
+
+		</Style>
+		<Style Selector="TextBox.changedBackground">
+			<Setter Property="Background" Value="{Binding ChangedBackground}"/>
+		</Style>
 
 	</Window.Styles>
 	<Window.Resources>
 		<m:FloatConverter x:Key="floatConverter"/>
 		<DataTemplate x:Key="SpecificParams" DataType="vm:ParamGeneral">
 			<Grid ShowGridLines="False" RowDefinitions="Auto, Auto">
-				<TextBlock Grid.Row="0"Text="{Binding PLabel}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-				<TextBox Name="paramTextBox" Grid.Row="1"				
+				<TextBlock Grid.Row="0" Text="{Binding PLabel}"  HorizontalAlignment="Center"/>
+				<TextBox x:Name="paramTextBox" Grid.Row="1" 
+				Classes.changedBackground="{Binding IsChangedValue}" 
+				Classes="Section" 
 				Text="{Binding SpecValue, Converter={StaticResource floatConverter}, Mode=TwoWay}"
-				Classes="outline dense"
-				Classes.error="{Binding IsError, Mode=TwoWay}"
-				Classes.changedBackground="{Binding IsChangedValue}"
-				MinWidth="87"
-				Margin="10,5,2,3"
-				Padding="0"
-				HorizontalAlignment="Stretch"
-				ToolTip.Tip="{Binding ToolTip}"
-				KeyboardNavigation.IsTabStop="True"
-				LostFocus="LostFocusValue"
-				</TextBox>
-				
-</Grid>
-</DataTemplate>
+				MinWidth="87" 
+				HorizontalAlignment="Stretch" 
+				ToolTip.Tip="{Binding ToolTip}" 
+				KeyboardNavigation.IsTabStop="True" />
+			</Grid>
+		</DataTemplate>
 	</Window.Resources>
 
 	
